@@ -4,7 +4,7 @@
   "author": "BigHoss",
   "authorUrl": "https://github.com/BigHoss",
   "description": "Run Obsidian from the system tray with extended window management and global quick notes.",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "isDesktopOnly": true,
   "minAppVersion": "1.0.0"
 }
