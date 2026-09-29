@@ -8,6 +8,8 @@ on:
 
 permissions:
   contents: write
+  attestations: write
+  id-token: write
 
 concurrency:
   group: release-main
@@ -72,5 +74,12 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: true
           files: |
+            main.js
+            manifest.json
+
+      - name: Attest release assets
+        uses: actions/attest@v4
+        with:
+          subject-path: |
             main.js
             manifest.json
