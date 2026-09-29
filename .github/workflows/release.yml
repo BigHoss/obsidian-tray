@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
 jobs:
   release:
     if: github.actor != 'github-actions[bot]'
@@ -56,20 +60,11 @@ jobs:
           git commit -m "chore(release): v${VERSION}"
           git push origin HEAD:main
 
-      - name: Create version tag
-        env:
-          VERSION: ${{ steps.gitversion.outputs.majorMinorPatch }}
-        run: |
-          if git rev-parse --verify --quiet "refs/tags/${VERSION}"; then
-            exit 0
-          fi
-          git tag --annotate "${VERSION}" --message "Release ${VERSION}"
-          git push origin "${VERSION}"
-
       - name: Create GitHub release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
+          target_commitish: main
           name: ${{ steps.gitversion.outputs.majorMinorPatch }}
           generate_release_notes: true
           fail_on_unmatched_files: true

@@ -1,6 +1,6 @@
 <img alt="" src="tray.png" align="right"  height="128px">
 
-**Tray (BigHoss)** is a fork of [dragonwocky's original Tray plugin](https://github.com/dragonwocky/obsidian-tray).
+**Tray-Extended** is a fork of [dragonwocky's original Tray plugin](https://github.com/dragonwocky/obsidian-tray).
 It can be used to launch the [Obsidian](https://obsidian.md/) app
 on system startup and run it in the background, adding global hotkeys and a tray menu to
 toggle window visibility and create quick notes from anywhere in your operating system.
@@ -44,8 +44,8 @@ visibility. On Linux Wayland desktop environments, bind it to a system shortcut 
 
 1. In Obsidian, navigate to **Settings** → **Community plugins**.
 2. Press the **Browse** button beside the **Community plugins** option.
-3. Search for `Tray (BigHoss)` in the **Filter** text input.
-4. Select `Tray (BigHoss)` and press **Install**.
+3. Search for `Tray-Extended` in the **Filter** text input.
+4. Select `Tray-Extended` and press **Install**.
 5. Once the plugin has finished installing, press **Enable**.
 6. Press the **Options** button.
 7. Configure the plugin as you wish.
@@ -57,7 +57,7 @@ visibility. On Linux Wayland desktop environments, bind it to a system shortcut 
 2. Copy it into your vault's `.obsidian/plugins` directory.
 3. In Obsidian, navigate to **Settings** → **Community plugins**.
 4. Press **Turn on community plugins** if you haven't already.
-5. Find `Tray (BigHoss)` in the list of **Installed plugins** and toggle it on.
+5. Find `Tray-Extended` in the list of **Installed plugins** and toggle it on.
 6. Press the **⚙️** button beside the toggle you just used.
 7. Configure the plugin as you wish.
 8. You're done! 🎉
