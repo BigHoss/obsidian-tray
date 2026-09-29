@@ -251,7 +251,7 @@ const registerHotkeys = () => {
 
 const registerUriHandlers = () => {
   log(LOG_REGISTER_URI_HANDLER);
-  plugin.registerObsidianProtocolHandler("tray/toggleWindows", toggleWindows);
+  plugin.registerObsidianProtocolHandler("tray-extended/toggleWindows", toggleWindows);
 };
 
 const OPTIONS = [

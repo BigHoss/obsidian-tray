@@ -26,9 +26,9 @@ Hotkeys can be assigned to the commands via Obsidian's built-in hotkey manager.
 
 ### URI shortcut
 
-This fork also registers `obsidian://tray/toggleWindows`, which toggles vault-window
+Tray-Extended registers `obsidian://tray-extended/toggleWindows`, which toggles vault-window
 visibility. On Linux Wayland desktop environments, bind it to a system shortcut with
-`xdg-open obsidian://tray/toggleWindows`.
+`xdg-open obsidian://tray-extended/toggleWindows`.
 
 ### Quick notes
 
@@ -54,7 +54,7 @@ visibility. On Linux Wayland desktop environments, bind it to a system shortcut 
 ### Manual
 
 1. Download this repository.
-2. Copy it into your vault's `.obsidian/plugins` directory.
+2. Copy it into your vault's `.obsidian/plugins/tray-extended` directory.
 3. In Obsidian, navigate to **Settings** → **Community plugins**.
 4. Press **Turn on community plugins** if you haven't already.
 5. Find `Tray-Extended` in the list of **Installed plugins** and toggle it on.
