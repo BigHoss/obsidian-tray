@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v3
+        with:
+          versionSpec: '6.8.x'
+
+      - name: Determine version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v3
+
+      - name: Update plugin manifest
+        env:
+          VERSION: ${{ steps.gitversion.outputs.majorMinorPatch }}
+        run: |
+          node --input-type=module -e '
+            import { readFile, writeFile } from "node:fs/promises";
+            const path = "manifest.json";
+            const manifest = JSON.parse(await readFile(path, "utf8"));
+            manifest.version = process.env.VERSION;
+            await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`);
+          '
+
+      - name: Commit generated manifest version
+        env:
+          VERSION: ${{ steps.gitversion.outputs.majorMinorPatch }}
+        run: |
+          if git diff --quiet -- manifest.json; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add manifest.json
+          git commit -m "chore(release): v${VERSION}"
+          git push origin HEAD:main
+
+      - name: Create version tag
+        env:
+          VERSION: ${{ steps.gitversion.outputs.majorMinorPatch }}
+        run: |
+          if git rev-parse --verify --quiet "refs/tags/${VERSION}"; then
+            exit 0
+          fi
+          git tag --annotate "${VERSION}" --message "Release ${VERSION}"
+          git push origin "${VERSION}"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
+          name: ${{ steps.gitversion.outputs.majorMinorPatch }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            main.js
+            manifest.json

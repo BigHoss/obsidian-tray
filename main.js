@@ -15,6 +15,7 @@ const LOG_PREFIX = "obsidian-tray",
   LOG_TRAY_ICON = "creating tray icon",
   LOG_REGISTER_HOTKEY = "registering hotkey",
   LOG_UNREGISTER_HOTKEY = "unregistering hotkey",
+  LOG_REGISTER_URI_HANDLER = "registering URI handler",
   ACTION_QUICK_NOTE = "Quick Note",
   ACTION_SHOW = "Show Vault",
   ACTION_HIDE = "Hide Vault",
@@ -247,6 +248,11 @@ const registerHotkeys = () => {
     } catch {}
   };
 
+const registerUriHandlers = () => {
+  log(LOG_REGISTER_URI_HANDLER);
+  plugin.registerObsidianProtocolHandler("tray/toggleWindows", toggleWindows);
+};
+
 const OPTIONS = [
   "Window management",
   {
@@ -453,6 +459,7 @@ class TrayPlugin extends obsidian.Plugin {
     plugin = this;
     createTrayIcon();
     registerHotkeys();
+    registerUriHandlers();
     setLaunchOnStartup();
     observeWindows();
     if (settings.runInBackground) interceptWindowClose();
