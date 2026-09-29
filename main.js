@@ -498,6 +498,14 @@ class SettingsTab extends obsidian.PluginSettingTab {
               .setPlaceholder(opt.placeholder)
               .setValue(value)
               .onChange((value) => [onChange(value), updatePreview(value)]);
+            if (opt.key === "quickNoteTemplate") {
+              const listId = "tray-extended-markdown-files",
+                list = setting.controlEl.createEl("datalist", { attr: { id: listId } });
+              plugin.app.vault
+                .getMarkdownFiles()
+                .forEach((file) => list.createEl("option", { value: file.path }));
+              text.inputEl.setAttr("list", listId);
+            }
           });
         }
       }
