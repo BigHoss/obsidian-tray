@@ -4,7 +4,7 @@
   "author": "BigHoss",
   "authorUrl": "https://github.com/BigHoss",
   "description": "Tray-Extended is a fork of Tray with extended window management and global quick notes",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "isDesktopOnly": true,
   "minAppVersion": "1.0.0"
 }
