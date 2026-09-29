@@ -21,6 +21,7 @@ const LOG_PREFIX = "obsidian-tray",
   ACTION_HIDE = "Hide Vault",
   ACTION_RELAUNCH = "Relaunch Obsidian",
   ACTION_CLOSE = "Close Vault",
+  ACTION_APPLY_TEMPLATE = "Apply quick note template?",
   DEFAULT_DATE_FORMAT = "YYYY-MM-DD",
   ACCELERATOR_FORMAT = `
     This hotkey is registered globally and will be detected even if Obsidian does
@@ -160,8 +161,36 @@ const cleanup = () => {
     } else vaultWindows.forEach((win) => win.destroy());
   };
 
-const addQuickNote = () => {
-    const { quickNoteLocation, quickNoteDateFormat } = plugin.settings,
+class TemplateConfirmModal extends obsidian.Modal {
+  constructor(app, onConfirm, onCancel) {
+    super(app);
+    this.onConfirm = onConfirm;
+    this.onCancel = onCancel;
+    this.confirmed = false;
+  }
+  onOpen() {
+    this.setTitle(ACTION_APPLY_TEMPLATE);
+    this.contentEl.createEl("p", {
+      text: "Copy the configured template into this quick note?",
+    });
+    new obsidian.Setting(this.contentEl)
+      .addButton((button) => button.setButtonText("No").onClick(() => this.close()))
+      .addButton((button) =>
+        button.setButtonText("Yes").setCta().onClick(() => {
+          this.confirmed = true;
+          this.onConfirm();
+          this.close();
+        })
+      );
+  }
+  onClose() {
+    if (!this.confirmed) this.onCancel();
+    this.contentEl.empty();
+  }
+}
+
+const addQuickNote = async () => {
+    const { quickNoteLocation, quickNoteDateFormat, quickNoteTemplate } = plugin.settings,
       pattern = quickNoteDateFormat || DEFAULT_DATE_FORMAT,
       date = obsidian.moment().format(pattern),
       name = obsidian
@@ -175,8 +204,24 @@ const addQuickNote = () => {
       leaf = plugin.app.workspace.getLeaf(),
       root = plugin.app.fileManager.getNewFileParent(""),
       openMode = { active: true, state: { mode: "source" } };
+    let content = "";
+    if (quickNoteTemplate) {
+      const applyTemplate = await new Promise((resolve) => {
+        new TemplateConfirmModal(plugin.app, () => resolve(true), () => resolve(false)).open();
+      });
+      if (applyTemplate) {
+        const template = plugin.app.vault.getAbstractFileByPath(
+          obsidian.normalizePath(quickNoteTemplate)
+        );
+        if (template instanceof obsidian.TFile) {
+          content = await plugin.app.vault.read(template);
+        } else {
+          new obsidian.Notice(`Quick note template not found: ${quickNoteTemplate}`);
+        }
+      }
+    }
     plugin.app.fileManager
-      .createNewMarkdownFile(root, name)
+      .createNewMarkdownFile(root, name, content)
       .then((file) => leaf.openFile(file, openMode));
     showWindows();
   },
@@ -356,6 +401,16 @@ const OPTIONS = [
     `,
     type: "moment",
     default: DEFAULT_DATE_FORMAT,
+  },
+  {
+    key: "quickNoteTemplate",
+    desc: `
+      Optional vault-relative Markdown template. Each quick note will ask whether to
+      apply it. <a href="https://github.com/SilentVoid13/Templater" target="_blank" rel="noopener">
+      Templater</a> can process its expressions after the note is created.
+    `,
+    type: "text",
+    placeholder: "Example: templates/quick-note.md",
   },
   {
     key: "quickNoteHotkey",
