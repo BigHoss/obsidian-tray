@@ -69,12 +69,32 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.version }}
           name: ${{ steps.version.outputs.version }}
+          draft: true
           prerelease: true
           target_commitish: ${{ github.sha }}
           fail_on_unmatched_files: true
           files: |
             main.js
             manifest.json
+
+      - name: Publish GitHub prerelease
+        uses: actions/github-script@v8
+        env:
+          TAG_NAME: ${{ steps.version.outputs.version }}
+        with:
+          script: |
+            const release = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: process.env.TAG_NAME,
+            });
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: release.data.id,
+              draft: false,
+              prerelease: true,
+            });
 
       - name: Attest release assets
         uses: actions/attest@v4
