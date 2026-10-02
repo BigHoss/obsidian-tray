@@ -1,0 +1,78 @@
+name: Beta Release
+
+on:
+  push:
+    branches-ignore:
+      - main
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Optional prerelease version, for example 1.0.11-beta.0
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  attestations: write
+  id-token: write
+
+jobs:
+  release:
+    if: github.ref_name != 'main'
+    runs-on: ubuntu-24.04
+    environment: beta-release
+    concurrency:
+      group: beta-release-${{ github.ref_name }}
+      cancel-in-progress: true
+    steps:
+      - name: Check out selected branch
+        uses: actions/checkout@v6
+
+      - name: Determine beta version
+        id: version
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION="${REQUESTED_VERSION:-$(node --input-type=module -e 'console.log(`${JSON.parse(await (await import("node:fs/promises")).readFile("manifest.json", "utf8")).version}-beta.${process.env.GITHUB_RUN_NUMBER}`)'}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Validate beta version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          node --input-type=module -e '
+            if (!/^\d+\.\d+\.\d+-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*$/.test(process.env.VERSION)) {
+              throw new Error("Use a semantic prerelease version such as 1.0.11-beta.0");
+            }
+          '
+
+      - name: Set beta version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          node --input-type=module -e '
+            import { readFile, writeFile } from "node:fs/promises";
+            const path = "manifest.json";
+            const manifest = JSON.parse(await readFile(path, "utf8"));
+            manifest.version = process.env.VERSION;
+            await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`);
+          '
+
+      - name: Create GitHub prerelease
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          prerelease: true
+          target_commitish: ${{ github.sha }}
+          fail_on_unmatched_files: true
+          files: |
+            main.js
+            manifest.json
+
+      - name: Attest release assets
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            main.js
+            manifest.json

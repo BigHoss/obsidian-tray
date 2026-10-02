@@ -16,6 +16,7 @@ const LOG_PREFIX = "obsidian-tray",
   LOG_REGISTER_HOTKEY = "registering hotkey",
   LOG_UNREGISTER_HOTKEY = "unregistering hotkey",
   LOG_REGISTER_URI_HANDLER = "registering URI handler",
+  LEGACY_PLUGIN_ID = "tray",
   ACTION_QUICK_NOTE = "Quick Note",
   ACTION_SHOW = "Show Vault",
   ACTION_HIDE = "Hide Vault",
@@ -276,15 +277,23 @@ const addQuickNote = async () => {
 
 const registerHotkeys = () => {
     log(LOG_REGISTER_HOTKEY);
-    try {
-      const { toggleWindowFocusHotkey, quickNoteHotkey } = plugin.settings;
-      if (toggleWindowFocusHotkey) {
-        globalShortcut.register(toggleWindowFocusHotkey, toggleWindows);
+    const { toggleWindowFocusHotkey, quickNoteHotkey } = plugin.settings,
+      hotkeys = [
+        [toggleWindowFocusHotkey, toggleWindows],
+        [quickNoteHotkey, addQuickNote],
+      ];
+    hotkeys.forEach(([accelerator, callback]) => {
+      if (!accelerator) return;
+      try {
+        if (!globalShortcut.register(accelerator, callback)) {
+          new obsidian.Notice(`Global hotkey unavailable: ${accelerator}`);
+          console.warn(`${LOG_PREFIX}: global hotkey unavailable: ${accelerator}`);
+        }
+      } catch (error) {
+        new obsidian.Notice(`Invalid global hotkey: ${accelerator}`);
+        console.error(`${LOG_PREFIX}: failed to register ${accelerator}`, error);
       }
-      if (quickNoteHotkey) {
-        globalShortcut.register(quickNoteHotkey, addQuickNote);
-      }
-    } catch {}
+    });
   },
   unregisterHotkeys = () => {
     log(LOG_UNREGISTER_HOTKEY);
@@ -521,6 +530,11 @@ class TrayPlugin extends obsidian.Plugin {
     const { settings } = this;
 
     plugin = this;
+    if (this.app.plugins.enabledPlugins.has(LEGACY_PLUGIN_ID)) {
+      new obsidian.Notice(
+        "Tray-Extended: disable the legacy Tray plugin to restore global hotkeys."
+      );
+    }
     createTrayIcon();
     registerHotkeys();
     registerUriHandlers();

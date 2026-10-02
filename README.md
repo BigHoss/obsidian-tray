@@ -24,6 +24,10 @@ The `Relaunch Obsidian` and `Close Vault` actions can be triggered from the tray
 or with the in-app command palette (search for "Tray: Relaunch Obsidian" or "Tray: Close Vault").
 Hotkeys can be assigned to the commands via Obsidian's built-in hotkey manager.
 
+If a global hotkey is unavailable, Tray-Extended shows a notice when it starts. A shortcut can only
+be registered by one application at a time. After migrating from the legacy `Tray` plugin, disable it
+before enabling `Tray-Extended` so it cannot retain the same global hotkeys.
+
 ### URI shortcut
 
 Tray-Extended registers `obsidian://tray-extended/toggleWindows`, which toggles vault-window
@@ -42,6 +46,16 @@ visibility. On Linux Wayland desktop environments, bind it to a system shortcut 
 The template is copied as-is. To use dynamic template expressions, install
 [Templater](https://github.com/SilentVoid13/Templater) and enable its trigger for new
 file creation.
+
+### Beta testing with BRAT
+
+BRAT installs GitHub release assets rather than branch contents. Every push outside `main` starts
+the **Beta Release** workflow, which waits for approval before publishing a prerelease containing
+`main.js` and `manifest.json`. Configure the one-time approval gate in **GitHub → Settings →
+Environments → beta-release** by adding yourself as a required reviewer. A manual run can supply
+a custom prerelease version such as `1.0.11-beta.0`; otherwise it derives one from `manifest.json`
+and the Actions run number. Add the repository to BRAT and select that prerelease. The normal
+release workflow only publishes from `main`.
 
 ## Installation
 
