@@ -39,7 +39,7 @@ const LOG_PREFIX = "obsidian-tray",
   OBSIDIAN_BASE64_ICON = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAHZSURBVDhPlZKxTxRBFMa/XZcF7nIG7mjxjoRCwomJxgsFdhaASqzQxFDzB1AQKgstLGxIiBQGJBpiCCGx8h+wgYaGgAWNd0dyHofeEYVwt/PmOTMZV9aDIL/s5pvZvPfN9yaL/+HR3eXcypta0m4juFbP5GHuXc9IbunDFc9db/G81/ZzhDMN7g8td47mll4R5BfHwZN4LOaA+fHa259PbUmIYzWkt3e2NZNo3/V9v1vvU6kkstk+tLW3ItUVr/m+c3N8MlkwxYqmBFcbwUQQCNOcyVzDwEAWjuPi5DhAMV/tKOYPX5hCyz8Gz1zX5SmWjBvZfmTSaRBJkGAIoxJHv+pVW2yIGNxOJ8bUVNcFEWLxuG1ia6JercTbttwQTeDwPS0kCMXiXtgk/jQrFUw7ptYSMWApF40yo/ytjHq98fdk3ayVE+cn2CxMb6ruz9qAJKFUKoWza1VJSi/n0+ffgYHdWW2gHuxXymg0gjCB0sjpmiaDnkL3RzDyzLqBUKns2ztQqUR0fk2TwSrGSf1eczqF5vsPZRCQSSAFLk6gqctgQRkc6TWRQLV2YMYQki9OoNkqzFQ9r+WOGuW5CrJbOzyAlPKr6MSGLbkcDwbf35oY/jRkt6cAfgNwowruAMz9AgAAAABJRU5ErkJggg==`,
   log = (message) => console.log(`${LOG_PREFIX}: ${message}`);
 
-let tray, plugin;
+let tray, plugin, startupHideCancelled = false;
 const obsidian = require("obsidian"),
   { app, Tray, Menu } = require("electron").remote,
   { nativeImage, BrowserWindow } = require("electron").remote,
@@ -99,7 +99,11 @@ const vaultWindows = new Set(),
     else showWindows();
   };
 
-const onSecondInstance = () => showWindows(),
+const showWindow = (params = {}) => {
+    if (params.ignoreStartupHide !== "false") startupHideCancelled = true;
+    showWindows();
+  },
+  onSecondInstance = () => showWindows(),
   onWindowClose = (event) => event.preventDefault(),
   onWindowUnload = (event) => {
     log(LOG_WINDOW_CLOSE);
@@ -306,6 +310,7 @@ const registerHotkeys = () => {
 const registerUriHandlers = () => {
   log(LOG_REGISTER_URI_HANDLER);
   plugin.registerObsidianProtocolHandler("tray-extended/toggleWindows", toggleWindows);
+  plugin.registerObsidianProtocolHandler("tray-extended/showWindow", showWindow);
 };
 
 const OPTIONS = [
@@ -544,7 +549,9 @@ class TrayPlugin extends obsidian.Plugin {
     if (settings.runInBackground) interceptWindowClose();
     if (settings.hideTaskbarIcon) hideTaskbarIcons();
     if (settings.hideOnLaunch) {
-      this.registerEvent(this.app.workspace.onLayoutReady(hideWindows));
+      this.registerEvent(this.app.workspace.onLayoutReady(() => {
+        if (!startupHideCancelled) hideWindows();
+      }));
     }
 
     // add as command: can be called from command palette

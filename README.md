@@ -30,9 +30,16 @@ before enabling `Tray-Extended` so it cannot retain the same global hotkeys.
 
 ### URI shortcut
 
-Tray-Extended registers `obsidian://tray-extended/toggleWindows`, which toggles vault-window
-visibility. On Linux Wayland desktop environments, bind it to a system shortcut with
-`xdg-open obsidian://tray-extended/toggleWindows`.
+Tray-Extended registers these URI handlers:
+
+| URI | Behavior |
+| --- | --- |
+| `obsidian://tray-extended/toggleWindows` | Toggles vault-window visibility. |
+| `obsidian://tray-extended/showWindow` | Ensures the vault window is visible and focused. It also cancels the one-time startup hide so the window remains visible during launch. |
+| `obsidian://tray-extended/showWindow?ignoreStartupHide=false` | Ensures the vault window is visible but permits a pending startup hide to run. |
+
+On Linux Wayland desktop environments, bind a system shortcut with
+`xdg-open obsidian://tray-extended/showWindow`.
 
 ### Quick notes
 
