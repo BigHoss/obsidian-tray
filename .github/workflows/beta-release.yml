@@ -65,6 +65,7 @@ jobs:
           '
 
       - name: Create GitHub prerelease
+        id: release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.version.outputs.version }}
@@ -79,19 +80,12 @@ jobs:
 
       - name: Publish GitHub prerelease
         uses: actions/github-script@v8
-        env:
-          TAG_NAME: ${{ steps.version.outputs.version }}
         with:
           script: |
-            const release = await github.rest.repos.getReleaseByTag({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag: process.env.TAG_NAME,
-            });
             await github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              release_id: release.data.id,
+              release_id: ${{ steps.release.outputs.id }},
               draft: false,
               prerelease: true,
             });

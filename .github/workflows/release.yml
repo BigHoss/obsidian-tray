@@ -66,6 +66,7 @@ jobs:
         run: git pull --ff-only origin main
 
       - name: Create GitHub release
+        id: release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.gitversion.outputs.majorMinorPatch }}
@@ -80,19 +81,12 @@ jobs:
 
       - name: Publish GitHub release
         uses: actions/github-script@v8
-        env:
-          TAG_NAME: ${{ steps.gitversion.outputs.majorMinorPatch }}
         with:
           script: |
-            const release = await github.rest.repos.getReleaseByTag({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag: process.env.TAG_NAME,
-            });
             await github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              release_id: release.data.id,
+              release_id: ${{ steps.release.outputs.id }},
               draft: false,
             });
 
